@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ค่าจ้างครัวกลาง · แดชบอร์ด ม.ค.–ก.ค. 2569</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F7F1E4; }
+  .num { font-variant-numeric: tabular-nums; }
+  .row:hover { background: #EDE3CC !important; }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #8A5A2B55; border-radius: 4px; }
+  .chip { cursor: pointer; transition: background .12s, color .12s; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const {
+  ComposedChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} = Recharts;
+
+/* ---------- Tiny inline icons (no external icon lib needed) ---------- */
+const Icon = ({ children, size = 18, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {children}
+  </svg>
+);
+const ChefHat = (p) => <Icon {...p}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></Icon>;
+const Flame = (p) => <Icon {...p}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></Icon>;
+const Wallet = (p) => <Icon {...p}><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></Icon>;
+const Users = (p) => <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+const ArrowUpDown = (p) => <Icon {...p}><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></Icon>;
+const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></Icon>;
+const Globe2 = (p) => <Icon {...p}><path d="M21 12A9 9 0 1 1 12 3"/><path d="M12 3a9 9 0 0 0 0 18"/><path d="M3.6 9h16.8M3.6 15h16.8"/><circle cx="12" cy="12" r="9"/></Icon>;
+
+/* ---------- Data ---------- */
+const MONTHS = ["012026", "022026", "032026", "042026", "052026", "062026", "072026"];
+
+const MONTHLY = [
+  { key: "012026", label: "ม.ค.", ot: 7885.08, income: 339050.96, n: 24 },
+  { key: "022026", label: "ก.พ.", ot: 13847.23, income: 361125.49, n: 25 },
+  { key: "032026", label: "มี.ค.", ot: 16106.43, income: 325599.03, n: 23 },
+  { key: "042026", label: "เม.ย.", ot: 45592.82, income: 393092.82, n: 25 },
+  { key: "052026", label: "พ.ค.", ot: 43840.19, income: 370940.19, n: 27 },
+  { key: "062026", label: "มิ.ย.", ot: 28547.02, income: 356300.25, n: 27 },
+  { key: "072026", label: "ก.ค.", ot: 66217.73, income: 361466.57, n: 28 },
+];
+
+const BRANCH_TREND = [
+  { key: "012026", label: "ม.ค.", "ครัวกลาง": 7397.08, "ต่างชาติ": 488 },
+  { key: "022026", label: "ก.พ.", "ครัวกลาง": 13734.73, "ต่างชาติ": 112.5 },
+  { key: "032026", label: "มี.ค.", "ครัวกลาง": 9281.43, "ต่างชาติ": 6825.0 },
+  { key: "042026", label: "เม.ย.", "ครัวกลาง": 11953.32, "ต่างชาติ": 33639.5 },
+  { key: "052026", label: "พ.ค.", "ครัวกลาง": 11062.69, "ต่างชาติ": 32777.5 },
+  { key: "062026", label: "มิ.ย.", "ครัวกลาง": 9534.52, "ต่างชาติ": 19012.5 },
+  { key: "072026", label: "ก.ค.", "ครัวกลาง": 14906.33, "ต่างชาติ": 51311.4 },
+];
+
+const EMPLOYEES = [{"id": "680085", "name": "นัน จี จี ลิน(จี)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 0, "032026": 525, "042026": 4050, "052026": 3487.5, "062026": 2137.5, "072026": 3450, "total_ot": 13650.0}, {"id": "680083", "name": "นาน มิ้น ทาน เอ(ขมิ้น)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 75, "032026": 487.5, "042026": 3037.5, "052026": 3975, "062026": 1575, "072026": 4050, "total_ot": 13200.0}, {"id": "680082", "name": "แนน คิน เทะ ไลง์ ทุน(มิน)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 0, "032026": 412.5, "042026": 3600, "052026": 3412.5, "062026": 1312.5, "072026": 3975, "total_ot": 12712.5}, {"id": "680084", "name": "ซอ ออง โก อู(ซอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 113, "022026": 0, "032026": 675, "042026": 3152, "052026": 2740, "062026": 1800, "072026": 3002, "total_ot": 11482}, {"id": "680081", "name": "ทา ซิน(ซิน)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 0, "032026": 750, "042026": 3150, "052026": 2812.5, "062026": 1200, "072026": 3112.5, "total_ot": 11025.0}, {"id": "680079", "name": "ซอ มิน อ่อง(รัก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 75, "022026": 37.5, "032026": 525, "042026": 4237.5, "052026": 4387.5, "062026": 1087.5, "072026": 0, "total_ot": 10350.0}, {"id": "680086", "name": "ซอ จอ ตู(จอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 0, "032026": 600, "042026": 2475, "052026": 2287.5, "062026": 1537.5, "072026": 3262.5, "total_ot": 10162.5}, {"id": "68015", "name": "ศุภกฤต เปลี่ยนสีนวล(โอ๊ต)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 375.0, "022026": 1265.66, "032026": 1125.03, "042026": 562.51, "052026": 3281.28, "062026": 1968.8, "072026": 1171.88, "total_ot": 9750.16}, {"id": "690047", "name": "นัฐชิตา พุ่มพวง(ยัสมิน)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 1968.78, "062026": 1968.76, "072026": 5203.16, "total_ot": 9140.7}, {"id": "680055", "name": "มัณฑณานาฎ ลือแสง(บิวตี้)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 609.4, "022026": 1875.05, "032026": 937.52, "042026": 2109.39, "052026": 1078.15, "062026": 2015.68, "072026": 375, "total_ot": 9000.19}, {"id": "680077", "name": "ซอ ไป โทน(ซอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 0, "022026": 0, "032026": 862.5, "042026": 2250, "052026": 1725, "062026": 1125, "072026": 2700, "total_ot": 8662.5}, {"id": "68024", "name": "ธีรภัทร์ คลังสิน(ท๊อป)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 421.89, "022026": 656.29, "032026": 515.67, "042026": 1546.91, "052026": 984.42, "062026": 1265.64, "072026": 3140.66, "total_ot": 8531.48}, {"id": "680080", "name": "โซ นัย วิน(เวง)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 150, "022026": 0, "032026": 975, "042026": 1312.5, "052026": 1012.5, "062026": 750, "072026": 3150, "total_ot": 7350.0}, {"id": "68019", "name": "ธนโชติ เกียรติวิศวพัฒน์(กี้)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1546.92, "022026": 2437.55, "032026": 1828.17, "042026": 1312.53, "052026": null, "062026": null, "072026": null, "total_ot": 7125.17}, {"id": "690037", "name": "ซอ อ่อง เมียว นวย(บิ๊ก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 1350, "052026": 1050, "062026": 1500, "072026": 3150, "total_ot": 7050}, {"id": "68003", "name": "อรจิรา ภักดี(มิลค์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 609.39, "022026": 2296.94, "032026": 1218.76, "042026": 1781.28, "052026": 937.52, "062026": 93.75, "072026": null, "total_ot": 6937.64}, {"id": "690044", "name": "ซอ เมียด โซ(ปุ๊)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 525, "052026": 1575, "062026": 937.5, "072026": 3900, "total_ot": 6937.5}, {"id": "68007", "name": "ศุภากร จอมทอง(เบียร์)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 984.38, "022026": 1078.15, "032026": 421.88, "042026": 1453.15, "052026": 328.13, "062026": 281.25, "072026": 2296.9, "total_ot": 6843.84}, {"id": "690035", "name": "ซอ ชิด แต เล(เล)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 1125, "052026": 1425, "062026": 1350, "072026": 2775, "total_ot": 6675}, {"id": "690025", "name": "ซอ เนียง ทู(ทู)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 600, "042026": 1275, "052026": 675, "062026": 787.5, "072026": 3262.5, "total_ot": 6600.0}, {"id": "680076", "name": "วีรวรรณ ชีพอุบัติ(ตุ่น)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 421.92, "022026": 1781.3, "032026": 1546.89, "042026": 2671.92, "052026": null, "062026": null, "072026": null, "total_ot": 6422.03}, {"id": "690053", "name": "ซอ หม่อง ซุย ซอง(ซุ่ย)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 787.5, "062026": 862.5, "072026": 3937.5, "total_ot": 5587.5}, {"id": "690046", "name": "อิสริยา โพธิ์ทอง(ออย)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 2484.41, "062026": 1640.64, "072026": 0, "total_ot": 4125.05}, {"id": "690026", "name": "พี พิว ป่าย(พิก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 75, "042026": 1125, "052026": 750, "062026": 1050, "072026": 1012.5, "total_ot": 4012.5}, {"id": "690024", "name": "อัง เพียง(ปาย)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 0, "042026": 750, "052026": 525, "062026": 0, "072026": 2212.5, "total_ot": 3487.5}, {"id": "680073", "name": "ภรภัทร ราชา(พิ้งค์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1031.29, "022026": 984.39, "032026": 1078.13, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 3093.81}, {"id": "68011", "name": "พรชัย หว่านหอม(พร)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 375.01, "022026": 1359.4, "032026": 609.38, "042026": 515.63, "052026": 0, "062026": 187.5, "072026": 0, "total_ot": 3046.92}, {"id": "690063", "name": "นันทิตา จำปาทอง(โม)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 3000, "total_ot": 3000}, {"id": "690062", "name": "ณัฐพร เทพจันตา(น้ำ)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 2015.63, "total_ot": 2015.63}, {"id": "690070", "name": "ซอ ปาย โซ(โซ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 1275, "total_ot": 1275}, {"id": "67015", "name": "นริศรา กาวิน(มินิ)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 787.5, "022026": 0, "032026": 0, "042026": 0, "052026": 0, "062026": 112.5, "072026": 0, "total_ot": 900.0}, {"id": "690079", "name": "SAW YE WIN NAING", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 787.5, "total_ot": 787.5}, {"id": "680078", "name": "ซอ จิน โก โก ทัน(กู)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 150, "022026": 0, "032026": 337.5, "042026": 225, "052026": 0, "062026": 0, "072026": null, "total_ot": 712.5}, {"id": "68023", "name": "จักรดุลย์ นุ่มนาม(บอส)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 234.38, "022026": 0, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 234.38}, {"id": "690054", "name": "GAR MA NI(กา)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 150, "062026": 0, "072026": null, "total_ot": 150}, {"id": "68002", "name": "สุภัสสรา ปรีดาสุทธิจิตต์(หมวย)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0}, {"id": "68008", "name": "ธนเศรษฐ เอี่ยมเจริญสุข(เปอร์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0}, {"id": "68025", "name": "เสฏฐวัฒน์ ทางธนกุล(บุ๊ค)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": 0, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0}];
+
+const fmt = (n) => Math.round(n).toLocaleString("th-TH");
+const fmt2 = (n) => n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const INK = "#2B241C";
+const PAPER = "#F7F1E4";
+const OVEN = "#C1611D";
+const CRUST = "#8A5A2B";
+const FLOUR = "#EDE3CC";
+const SAGE = "#5F7A5A";
+const CLAY = "#B4552F";
+
+function PayrollDashboard() {
+  const [monthFilter, setMonthFilter] = useState("ALL");
+  const [sortDesc, setSortDesc] = useState(true);
+  const [query, setQuery] = useState("");
+
+  const maxOtMonth = useMemo(() => MONTHLY.reduce((a, b) => (b.ot > a.ot ? b : a)), []);
+  const maxIncomeMonth = useMemo(() => MONTHLY.reduce((a, b) => (b.income > a.income ? b : a)), []);
+  const totalIncomeAll = useMemo(() => MONTHLY.reduce((s, m) => s + m.income, 0), []);
+  const totalOtAll = useMemo(() => MONTHLY.reduce((s, m) => s + m.ot, 0), []);
+
+  const selected = monthFilter === "ALL" ? null : MONTHLY.find((m) => m.key === monthFilter);
+
+  const tableRows = useMemo(() => {
+    let rows;
+    if (monthFilter === "ALL") {
+      rows = EMPLOYEES.map((e) => ({ id: e.id, name: e.name, branch: e.branch, value: e.total_ot, byMonth: e }));
+    } else {
+      rows = EMPLOYEES
+        .filter((e) => e[monthFilter] !== null && e[monthFilter] !== undefined)
+        .map((e) => ({ id: e.id, name: e.name, branch: e.branch, value: e[monthFilter], byMonth: e }));
+    }
+    rows = rows.filter(
+      (e) => e.name.toLowerCase().includes(query.toLowerCase()) || e.id.includes(query)
+    );
+    rows = [...rows].sort((a, b) => (sortDesc ? b.value - a.value : a.value - b.value));
+    return rows;
+  }, [monthFilter, query, sortDesc]);
+
+  const monthChipLabel = (key) => MONTHLY.find((m) => m.key === key)?.label;
+
+  return (
+    <div style={{ background: PAPER, minHeight: "100vh", fontFamily: "'IBM Plex Sans Thai',sans-serif", color: INK, padding: "28px 20px" }}>
+      <style>{`.num { font-variant-numeric: tabular-nums; }`}</style>
+
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, borderBottom: `3px solid ${INK}`, paddingBottom: 14, marginBottom: 18, maxWidth: 1180, margin: "0 auto 18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: OVEN, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <ChefHat size={24} color={PAPER} />
+          </div>
+          <div>
+            <h1 style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 26, margin: 0, letterSpacing: -0.3 }}>ค่าจ้างครัวกลาง</h1>
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: CRUST, fontWeight: 500 }}>สรุปมกราคม – กรกฎาคม 2569 · เบเกอรี (ครัวกลาง)</p>
+          </div>
+        </div>
+        <div style={{ fontSize: 12, color: CRUST, textAlign: "right" }}>พนักงานทั้งหมด <b>{EMPLOYEES.length}</b> คน</div>
+      </div>
+
+      <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
+          <span className="chip" onClick={() => setMonthFilter("ALL")}
+            style={{ padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
+              background: monthFilter === "ALL" ? INK : "#fff", color: monthFilter === "ALL" ? PAPER : INK, border: `1px solid ${INK}` }}>
+            ทั้งหมด (7 เดือน)
+          </span>
+          {MONTHLY.map((m) => (
+            <span key={m.key} className="chip" onClick={() => setMonthFilter(m.key)}
+              style={{ padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
+                background: monthFilter === m.key ? OVEN : "#fff", color: monthFilter === m.key ? PAPER : INK,
+                border: `1px solid ${monthFilter === m.key ? OVEN : CRUST + "55"}` }}>
+              {m.label}
+            </span>
+          ))}
+        </div>
+
+        {monthFilter === "ALL" ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
+            <KpiCard icon={<Wallet size={18} />} label="ยอดค่าจ้างรวม 7 เดือน" value={`฿${fmt(totalIncomeAll)}`} sub="รวมรายรับทุกสาขา" accent={INK} />
+            <KpiCard icon={<Flame size={18} />} label="ยอด OT รวม 7 เดือน" value={`฿${fmt(totalOtAll)}`} sub="โอทีล่วงเวลาทุกประเภท" accent={OVEN} />
+            <KpiCard icon={<Flame size={18} />} label="เดือนที่ OT สูงสุด" value={maxOtMonth.label} sub={`฿${fmt(maxOtMonth.ot)}`} accent={OVEN} highlight />
+            <KpiCard icon={<Wallet size={18} />} label="เดือนที่จ่ายค่าจ้างสูงสุด" value={maxIncomeMonth.label} sub={`฿${fmt(maxIncomeMonth.income)}`} accent={SAGE} highlight />
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
+            <KpiCard icon={<Wallet size={18} />} label={`ค่าจ้างรวม เดือน ${selected.label}`} value={`฿${fmt(selected.income)}`} sub="รวมรายรับทุกสาขา" accent={INK} highlight />
+            <KpiCard icon={<Flame size={18} />} label={`OT รวม เดือน ${selected.label}`} value={`฿${fmt(selected.ot)}`} sub={`${((selected.ot / selected.income) * 100).toFixed(1)}% ของค่าจ้างรวม`} accent={OVEN} highlight />
+            <KpiCard icon={<Users size={18} />} label="พนักงานที่มีข้อมูล" value={`${selected.n} คน`} sub={`เดือน ${selected.label} 2569`} accent={SAGE} />
+            <KpiCard icon={<Flame size={18} />} label="OT เฉลี่ยต่อคน" value={`฿${fmt(selected.ot / selected.n)}`} sub={`เดือน ${selected.label}`} accent={CLAY} />
+          </div>
+        )}
+
+        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0 }}>ค่าจ้างรวม vs. โอที รายเดือน</h2>
+            <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
+              <LegendDot color={CRUST} label="ค่าจ้างรวม (แท่ง)" />
+              <LegendDot color={OVEN} label="โอที (เส้น)" />
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={MONTHLY} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid stroke={FLOUR} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: OVEN }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <Tooltip formatter={(v, name) => [`฿${fmt2(v)}`, name === "income" ? "ค่าจ้างรวม" : "โอที"]}
+                labelFormatter={(l) => `เดือน ${l}`}
+                contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }} />
+              <Bar yAxisId="left" dataKey="income" fill={CRUST} radius={[5, 5, 0, 0]} barSize={34} name="income" />
+              <Line yAxisId="right" dataKey="ot" stroke={OVEN} strokeWidth={3} dot={{ r: 4, fill: OVEN }} name="ot" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 26 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <Globe2 size={17} color={CRUST} /> แนวโน้ม OT: ครัวกลาง vs. ต่างชาติ
+            </h2>
+            <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
+              <LegendDot color={CLAY} label="ครัวกลาง" />
+              <LegendDot color={SAGE} label="ต่างชาติ" />
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={BRANCH_TREND} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <CartesianGrid stroke={FLOUR} vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+              <Tooltip formatter={(v) => [`฿${fmt2(v)}`, ""]} labelFormatter={(l) => `เดือน ${l}`}
+                contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }} />
+              <Line dataKey="ครัวกลาง" stroke={CLAY} strokeWidth={3} dot={{ r: 4, fill: CLAY }} />
+              <Line dataKey="ต่างชาติ" stroke={SAGE} strokeWidth={3} dot={{ r: 4, fill: SAGE }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <Flame size={18} color={OVEN} />
+              รายชื่อ &amp; ยอด OT {monthFilter === "ALL" ? "แยกรายเดือน (ม.ค.–ก.ค. 2569)" : `เดือน ${monthChipLabel(monthFilter)} 2569`}
+            </h2>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ position: "relative" }}>
+                <Search size={14} style={{ position: "absolute", left: 9, top: 9, color: CRUST }} />
+                <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาชื่อ / รหัส"
+                  style={{ padding: "7px 10px 7px 28px", borderRadius: 8, border: `1px solid ${CRUST}55`, fontSize: 13, fontFamily: "inherit", width: 180, outline: "none" }} />
+              </div>
+              <button onClick={() => setSortDesc((s) => !s)}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 8, border: `1px solid ${CRUST}55`, background: FLOUR, fontSize: 13, cursor: "pointer", fontFamily: "inherit", color: INK }}>
+                <ArrowUpDown size={13} /> {sortDesc ? "มาก→น้อย" : "น้อย→มาก"}
+              </button>
+            </div>
+          </div>
+
+          <div style={{ maxHeight: 520, overflowY: "auto", overflowX: "auto", borderRadius: 8 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: monthFilter === "ALL" ? 900 : 480 }}>
+              <thead>
+                <tr style={{ position: "sticky", top: 0, background: INK, color: PAPER, zIndex: 1 }}>
+                  <th style={th}>#</th>
+                  <th style={{ ...th, textAlign: "left" }}>รหัส</th>
+                  <th style={{ ...th, textAlign: "left" }}>ชื่อ-นามสกุล</th>
+                  <th style={{ ...th, textAlign: "left" }}>สาขา</th>
+                  {monthFilter === "ALL" ? (
+                    <>
+                      {MONTHLY.map((m) => <th key={m.key} style={{ ...th, textAlign: "right" }}>{m.label}</th>)}
+                      <th style={{ ...th, textAlign: "right", background: OVEN }}>รวม OT</th>
+                    </>
+                  ) : (
+                    <th style={{ ...th, textAlign: "right", background: OVEN }}>OT (บาท)</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.map((e, i) => (
+                  <tr key={e.id} className="row" style={{ borderBottom: `1px solid ${FLOUR}` }}>
+                    <td style={{ ...td, color: CRUST }}>{i + 1}</td>
+                    <td style={{ ...td, color: CRUST }} className="num">{e.id}</td>
+                    <td style={{ ...td, fontWeight: 500 }}>{e.name}</td>
+                    <td style={{ ...td, color: CRUST, fontSize: 12 }}>{e.branch}</td>
+                    {monthFilter === "ALL" ? (
+                      <>
+                        {MONTHS.map((mk) => (
+                          <td key={mk} style={{ ...td, textAlign: "right", color: e.byMonth[mk] == null ? "#c9bfa8" : INK }} className="num">
+                            {e.byMonth[mk] == null ? "—" : fmt2(e.byMonth[mk])}
+                          </td>
+                        ))}
+                        <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
+                      </>
+                    ) : (
+                      <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
+                    )}
+                  </tr>
+                ))}
+                {tableRows.length === 0 && (
+                  <tr><td colSpan={20} style={{ ...td, textAlign: "center", color: CRUST, padding: 24 }}>ไม่พบข้อมูล</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize: 11.5, color: CRUST, marginTop: 10, marginBottom: 0 }}>
+            * ยอด OT รวมคอลัมน์ "โอทีล่วงเวลา (x1.5)" และ "โอทีล่วงเวลาวันหยุด" ต่อคนต่อเดือน (ไม่รวมค่าจ้าง/เงินเดือน) · "—" หมายถึงไม่มีข้อมูลเดือนนั้น · ไม่รวมชีท Sheet8
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({ icon, label, value, sub, accent, highlight }) {
+  return (
+    <div style={{ background: highlight ? INK : "#fff", color: highlight ? PAPER : INK, border: `1px solid ${highlight ? INK : CRUST + "33"}`, borderRadius: 14, padding: "16px 16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        {icon}
+        <span style={{ fontSize: 12, fontWeight: 500, color: highlight ? PAPER + "cc" : CRUST }}>{label}</span>
+      </div>
+      <div style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 700 }} className="num">{value}</div>
+      <div style={{ fontSize: 12, marginTop: 2, color: highlight ? PAPER + "aa" : CRUST }} className="num">{sub}</div>
+    </div>
+  );
+}
+
+function LegendDot({ color, label }) {
+  return (
+    <span style={{ display: "flex", alignItems: "center", gap: 5, color: INK }}>
+      <span style={{ width: 10, height: 10, borderRadius: 3, background: color, display: "inline-block" }} />
+      {label}
+    </span>
+  );
+}
+
+const th = { padding: "9px 10px", fontWeight: 600, fontSize: 12, textAlign: "center" };
+const td = { padding: "8px 10px" };
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<PayrollDashboard />);
+</script>
+</body>
+</html>
