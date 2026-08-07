@@ -1,51 +1,9 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ค่าจ้างครัวกลาง · แดชบอร์ด ม.ค.–ก.ค. 2569</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
-
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
-<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; background: #F7F1E4; }
-  .num { font-variant-numeric: tabular-nums; }
-  .row:hover { background: #EDE3CC !important; }
-  ::-webkit-scrollbar { height: 8px; width: 8px; }
-  ::-webkit-scrollbar-thumb { background: #8A5A2B55; border-radius: 4px; }
-  .chip { cursor: pointer; transition: background .12s, color .12s; }
-</style>
-</head>
-<body>
-<div id="root"></div>
-
-<script type="text/babel" data-presets="react">
-const { useState, useMemo } = React;
-const {
+import React, { useState, useMemo } from "react";
+import {
   ComposedChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} = Recharts;
+} from "recharts";
+import { ChefHat, Flame, Wallet, Users, ArrowUpDown, Search, Globe2 } from "lucide-react";
 
-/* ---------- Tiny inline icons (no external icon lib needed) ---------- */
-const Icon = ({ children, size = 18, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {children}
-  </svg>
-);
-const ChefHat = (p) => <Icon {...p}><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></Icon>;
-const Flame = (p) => <Icon {...p}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></Icon>;
-const Wallet = (p) => <Icon {...p}><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></Icon>;
-const Users = (p) => <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
-const ArrowUpDown = (p) => <Icon {...p}><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></Icon>;
-const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></Icon>;
-const Globe2 = (p) => <Icon {...p}><path d="M21 12A9 9 0 1 1 12 3"/><path d="M12 3a9 9 0 0 0 0 18"/><path d="M3.6 9h16.8M3.6 15h16.8"/><circle cx="12" cy="12" r="9"/></Icon>;
-
-/* ---------- Data ---------- */
 const MONTHS = ["012026", "022026", "032026", "042026", "052026", "062026", "072026"];
 
 const MONTHLY = [
@@ -81,8 +39,8 @@ const FLOUR = "#EDE3CC";
 const SAGE = "#5F7A5A";
 const CLAY = "#B4552F";
 
-function PayrollDashboard() {
-  const [monthFilter, setMonthFilter] = useState("ALL");
+export default function PayrollDashboard() {
+  const [monthFilter, setMonthFilter] = useState("ALL"); // "ALL" or a month key
   const [sortDesc, setSortDesc] = useState(true);
   const [query, setQuery] = useState("");
 
@@ -93,6 +51,7 @@ function PayrollDashboard() {
 
   const selected = monthFilter === "ALL" ? null : MONTHLY.find((m) => m.key === monthFilter);
 
+  // Table rows depend on filter
   const tableRows = useMemo(() => {
     let rows;
     if (monthFilter === "ALL") {
@@ -112,169 +71,213 @@ function PayrollDashboard() {
   const monthChipLabel = (key) => MONTHLY.find((m) => m.key === key)?.label;
 
   return (
-    <div style={{ background: PAPER, minHeight: "100vh", fontFamily: "'IBM Plex Sans Thai',sans-serif", color: INK, padding: "28px 20px" }}>
-      <style>{`.num { font-variant-numeric: tabular-nums; }`}</style>
+    <div style={{ background: PAPER, minHeight: "100%", fontFamily: "'IBM Plex Sans Thai','Sarabun',sans-serif", color: INK, padding: "28px 20px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+        .num { font-variant-numeric: tabular-nums; }
+        .row:hover { background: ${FLOUR} !important; }
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-thumb { background: ${CRUST}55; border-radius: 4px; }
+        .chip { cursor: pointer; transition: background .12s, color .12s; }
+      `}</style>
 
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, borderBottom: `3px solid ${INK}`, paddingBottom: 14, marginBottom: 18, maxWidth: 1180, margin: "0 auto 18px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12, borderBottom: `3px solid ${INK}`, paddingBottom: 14, marginBottom: 18 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 44, height: 44, borderRadius: 10, background: OVEN, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <ChefHat size={24} color={PAPER} />
           </div>
           <div>
-            <h1 style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 26, margin: 0, letterSpacing: -0.3 }}>ค่าจ้างครัวกลาง</h1>
-            <p style={{ margin: "2px 0 0", fontSize: 13, color: CRUST, fontWeight: 500 }}>สรุปมกราคม – กรกฎาคม 2569 · เบเกอรี (ครัวกลาง)</p>
+            <h1 style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 26, margin: 0, letterSpacing: -0.3 }}>
+              ค่าจ้างครัวกลาง
+            </h1>
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: CRUST, fontWeight: 500 }}>
+              สรุปมกราคม – กรกฎาคม 2569 · เบเกอรี (ครัวกลาง)
+            </p>
           </div>
         </div>
-        <div style={{ fontSize: 12, color: CRUST, textAlign: "right" }}>พนักงานทั้งหมด <b>{EMPLOYEES.length}</b> คน</div>
+        <div style={{ fontSize: 12, color: CRUST, textAlign: "right" }}>
+          พนักงานทั้งหมด <b>{EMPLOYEES.length}</b> คน
+        </div>
       </div>
 
-      <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
-          <span className="chip" onClick={() => setMonthFilter("ALL")}
-            style={{ padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
-              background: monthFilter === "ALL" ? INK : "#fff", color: monthFilter === "ALL" ? PAPER : INK, border: `1px solid ${INK}` }}>
-            ทั้งหมด (7 เดือน)
+      {/* Month filter chips */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
+        <span
+          className="chip"
+          onClick={() => setMonthFilter("ALL")}
+          style={{
+            padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
+            background: monthFilter === "ALL" ? INK : "#fff",
+            color: monthFilter === "ALL" ? PAPER : INK,
+            border: `1px solid ${INK}`,
+          }}
+        >
+          ทั้งหมด (7 เดือน)
+        </span>
+        {MONTHLY.map((m) => (
+          <span
+            key={m.key}
+            className="chip"
+            onClick={() => setMonthFilter(m.key)}
+            style={{
+              padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
+              background: monthFilter === m.key ? OVEN : "#fff",
+              color: monthFilter === m.key ? PAPER : INK,
+              border: `1px solid ${monthFilter === m.key ? OVEN : CRUST + "55"}`,
+            }}
+          >
+            {m.label}
           </span>
-          {MONTHLY.map((m) => (
-            <span key={m.key} className="chip" onClick={() => setMonthFilter(m.key)}
-              style={{ padding: "6px 14px", borderRadius: 999, fontSize: 13, fontWeight: 600,
-                background: monthFilter === m.key ? OVEN : "#fff", color: monthFilter === m.key ? PAPER : INK,
-                border: `1px solid ${monthFilter === m.key ? OVEN : CRUST + "55"}` }}>
-              {m.label}
-            </span>
-          ))}
+        ))}
+      </div>
+
+      {/* KPI cards */}
+      {monthFilter === "ALL" ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
+          <KpiCard icon={<Wallet size={18} />} label="ยอดค่าจ้างรวม 7 เดือน" value={`฿${fmt(totalIncomeAll)}`} sub="รวมรายรับทุกสาขา" accent={INK} />
+          <KpiCard icon={<Flame size={18} />} label="ยอด OT รวม 7 เดือน" value={`฿${fmt(totalOtAll)}`} sub="โอทีล่วงเวลาทุกประเภท" accent={OVEN} />
+          <KpiCard icon={<Flame size={18} />} label="เดือนที่ OT สูงสุด" value={maxOtMonth.label} sub={`฿${fmt(maxOtMonth.ot)}`} accent={OVEN} highlight />
+          <KpiCard icon={<Wallet size={18} />} label="เดือนที่จ่ายค่าจ้างสูงสุด" value={maxIncomeMonth.label} sub={`฿${fmt(maxIncomeMonth.income)}`} accent={SAGE} highlight />
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
+          <KpiCard icon={<Wallet size={18} />} label={`ค่าจ้างรวม เดือน ${selected.label}`} value={`฿${fmt(selected.income)}`} sub="รวมรายรับทุกสาขา" accent={INK} highlight />
+          <KpiCard icon={<Flame size={18} />} label={`OT รวม เดือน ${selected.label}`} value={`฿${fmt(selected.ot)}`} sub={`${((selected.ot / selected.income) * 100).toFixed(1)}% ของค่าจ้างรวม`} accent={OVEN} highlight />
+          <KpiCard icon={<Users size={18} />} label={`พนักงานที่มีข้อมูล`} value={`${selected.n} คน`} sub={`เดือน ${selected.label} 2569`} accent={SAGE} />
+          <KpiCard icon={<Flame size={18} />} label="OT เฉลี่ยต่อคน" value={`฿${fmt(selected.ot / selected.n)}`} sub={`เดือน ${selected.label}`} accent={CLAY} />
+        </div>
+      )}
+
+      {/* Chart 1: wage vs OT by month */}
+      <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+          <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0 }}>ค่าจ้างรวม vs. โอที รายเดือน</h2>
+          <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
+            <LegendDot color={CRUST} label="ค่าจ้างรวม (แท่ง)" />
+            <LegendDot color={OVEN} label="โอที (เส้น)" />
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={MONTHLY} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <CartesianGrid stroke={FLOUR} vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
+            <YAxis yAxisId="left" tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: OVEN }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+            <Tooltip
+              formatter={(v, name) => [`฿${fmt2(v)}`, name === "income" ? "ค่าจ้างรวม" : "โอที"]}
+              labelFormatter={(l) => `เดือน ${l}`}
+              contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }}
+            />
+            <Bar yAxisId="left" dataKey="income" fill={CRUST} radius={[5, 5, 0, 0]} barSize={34} name="income" />
+            <Line yAxisId="right" dataKey="ot" stroke={OVEN} strokeWidth={3} dot={{ r: 4, fill: OVEN }} name="ot" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Chart 2: OT trend by branch */}
+      <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 26 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+          <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            <Globe2 size={17} color={CRUST} /> แนวโน้ม OT: ครัวกลาง vs. ต่างชาติ
+          </h2>
+          <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
+            <LegendDot color={CLAY} label="ครัวกลาง" />
+            <LegendDot color={SAGE} label="ต่างชาติ" />
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={BRANCH_TREND} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <CartesianGrid stroke={FLOUR} vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+            <Tooltip
+              formatter={(v) => [`฿${fmt2(v)}`, ""]}
+              labelFormatter={(l) => `เดือน ${l}`}
+              contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }}
+            />
+            <Line dataKey="ครัวกลาง" stroke={CLAY} strokeWidth={3} dot={{ r: 4, fill: CLAY }} />
+            <Line dataKey="ต่างชาติ" stroke={SAGE} strokeWidth={3} dot={{ r: 4, fill: SAGE }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Employee OT table */}
+      <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+          <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+            <Flame size={18} color={OVEN} />
+            รายชื่อ & ยอด OT {monthFilter === "ALL" ? "แยกรายเดือน (ม.ค.–ก.ค. 2569)" : `เดือน ${monthChipLabel(monthFilter)} 2569`}
+          </h2>
+          <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ position: "relative" }}>
+              <Search size={14} style={{ position: "absolute", left: 9, top: 9, color: CRUST }} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ค้นหาชื่อ / รหัส"
+                style={{ padding: "7px 10px 7px 28px", borderRadius: 8, border: `1px solid ${CRUST}55`, fontSize: 13, fontFamily: "inherit", width: 180, outline: "none" }}
+              />
+            </div>
+            <button
+              onClick={() => setSortDesc((s) => !s)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 8, border: `1px solid ${CRUST}55`, background: FLOUR, fontSize: 13, cursor: "pointer", fontFamily: "inherit", color: INK }}
+            >
+              <ArrowUpDown size={13} /> {sortDesc ? "มาก→น้อย" : "น้อย→มาก"}
+            </button>
+          </div>
         </div>
 
-        {monthFilter === "ALL" ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
-            <KpiCard icon={<Wallet size={18} />} label="ยอดค่าจ้างรวม 7 เดือน" value={`฿${fmt(totalIncomeAll)}`} sub="รวมรายรับทุกสาขา" accent={INK} />
-            <KpiCard icon={<Flame size={18} />} label="ยอด OT รวม 7 เดือน" value={`฿${fmt(totalOtAll)}`} sub="โอทีล่วงเวลาทุกประเภท" accent={OVEN} />
-            <KpiCard icon={<Flame size={18} />} label="เดือนที่ OT สูงสุด" value={maxOtMonth.label} sub={`฿${fmt(maxOtMonth.ot)}`} accent={OVEN} highlight />
-            <KpiCard icon={<Wallet size={18} />} label="เดือนที่จ่ายค่าจ้างสูงสุด" value={maxIncomeMonth.label} sub={`฿${fmt(maxIncomeMonth.income)}`} accent={SAGE} highlight />
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 26 }}>
-            <KpiCard icon={<Wallet size={18} />} label={`ค่าจ้างรวม เดือน ${selected.label}`} value={`฿${fmt(selected.income)}`} sub="รวมรายรับทุกสาขา" accent={INK} highlight />
-            <KpiCard icon={<Flame size={18} />} label={`OT รวม เดือน ${selected.label}`} value={`฿${fmt(selected.ot)}`} sub={`${((selected.ot / selected.income) * 100).toFixed(1)}% ของค่าจ้างรวม`} accent={OVEN} highlight />
-            <KpiCard icon={<Users size={18} />} label="พนักงานที่มีข้อมูล" value={`${selected.n} คน`} sub={`เดือน ${selected.label} 2569`} accent={SAGE} />
-            <KpiCard icon={<Flame size={18} />} label="OT เฉลี่ยต่อคน" value={`฿${fmt(selected.ot / selected.n)}`} sub={`เดือน ${selected.label}`} accent={CLAY} />
-          </div>
-        )}
-
-        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
-            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0 }}>ค่าจ้างรวม vs. โอที รายเดือน</h2>
-            <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
-              <LegendDot color={CRUST} label="ค่าจ้างรวม (แท่ง)" />
-              <LegendDot color={OVEN} label="โอที (เส้น)" />
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={MONTHLY} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid stroke={FLOUR} vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: OVEN }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-              <Tooltip formatter={(v, name) => [`฿${fmt2(v)}`, name === "income" ? "ค่าจ้างรวม" : "โอที"]}
-                labelFormatter={(l) => `เดือน ${l}`}
-                contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }} />
-              <Bar yAxisId="left" dataKey="income" fill={CRUST} radius={[5, 5, 0, 0]} barSize={34} name="income" />
-              <Line yAxisId="right" dataKey="ot" stroke={OVEN} strokeWidth={3} dot={{ r: 4, fill: OVEN }} name="ot" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px 8px", marginBottom: 26 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
-            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-              <Globe2 size={17} color={CRUST} /> แนวโน้ม OT: ครัวกลาง vs. ต่างชาติ
-            </h2>
-            <div style={{ display: "flex", gap: 14, fontSize: 12 }}>
-              <LegendDot color={CLAY} label="ครัวกลาง" />
-              <LegendDot color={SAGE} label="ต่างชาติ" />
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={BRANCH_TREND} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid stroke={FLOUR} vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 12, fill: INK }} axisLine={{ stroke: CRUST }} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: INK }} axisLine={false} tickLine={false} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-              <Tooltip formatter={(v) => [`฿${fmt2(v)}`, ""]} labelFormatter={(l) => `เดือน ${l}`}
-                contentStyle={{ fontFamily: "'IBM Plex Sans Thai',sans-serif", borderRadius: 8, border: `1px solid ${CRUST}55` }} />
-              <Line dataKey="ครัวกลาง" stroke={CLAY} strokeWidth={3} dot={{ r: 4, fill: CLAY }} />
-              <Line dataKey="ต่างชาติ" stroke={SAGE} strokeWidth={3} dot={{ r: 4, fill: SAGE }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div style={{ background: "#fff", border: `1px solid ${CRUST}33`, borderRadius: 14, padding: "18px 16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-            <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: 17, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-              <Flame size={18} color={OVEN} />
-              รายชื่อ &amp; ยอด OT {monthFilter === "ALL" ? "แยกรายเดือน (ม.ค.–ก.ค. 2569)" : `เดือน ${monthChipLabel(monthFilter)} 2569`}
-            </h2>
-            <div style={{ display: "flex", gap: 8 }}>
-              <div style={{ position: "relative" }}>
-                <Search size={14} style={{ position: "absolute", left: 9, top: 9, color: CRUST }} />
-                <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ค้นหาชื่อ / รหัส"
-                  style={{ padding: "7px 10px 7px 28px", borderRadius: 8, border: `1px solid ${CRUST}55`, fontSize: 13, fontFamily: "inherit", width: 180, outline: "none" }} />
-              </div>
-              <button onClick={() => setSortDesc((s) => !s)}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 8, border: `1px solid ${CRUST}55`, background: FLOUR, fontSize: 13, cursor: "pointer", fontFamily: "inherit", color: INK }}>
-                <ArrowUpDown size={13} /> {sortDesc ? "มาก→น้อย" : "น้อย→มาก"}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ maxHeight: 520, overflowY: "auto", overflowX: "auto", borderRadius: 8 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: monthFilter === "ALL" ? 900 : 480 }}>
-              <thead>
-                <tr style={{ position: "sticky", top: 0, background: INK, color: PAPER, zIndex: 1 }}>
-                  <th style={th}>#</th>
-                  <th style={{ ...th, textAlign: "left" }}>รหัส</th>
-                  <th style={{ ...th, textAlign: "left" }}>ชื่อ-นามสกุล</th>
-                  <th style={{ ...th, textAlign: "left" }}>สาขา</th>
+        <div style={{ maxHeight: 520, overflowY: "auto", overflowX: "auto", borderRadius: 8 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: monthFilter === "ALL" ? 900 : 480 }}>
+            <thead>
+              <tr style={{ position: "sticky", top: 0, background: INK, color: PAPER, zIndex: 1 }}>
+                <th style={th}>#</th>
+                <th style={{ ...th, textAlign: "left" }}>รหัส</th>
+                <th style={{ ...th, textAlign: "left" }}>ชื่อ-นามสกุล</th>
+                <th style={{ ...th, textAlign: "left" }}>สาขา</th>
+                {monthFilter === "ALL" ? (
+                  <>
+                    {MONTHLY.map((m) => (
+                      <th key={m.key} style={{ ...th, textAlign: "right" }}>{m.label}</th>
+                    ))}
+                    <th style={{ ...th, textAlign: "right", background: OVEN }}>รวม OT</th>
+                  </>
+                ) : (
+                  <th style={{ ...th, textAlign: "right", background: OVEN }}>OT (บาท)</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {tableRows.map((e, i) => (
+                <tr key={e.id} className="row" style={{ borderBottom: `1px solid ${FLOUR}` }}>
+                  <td style={{ ...td, color: CRUST }}>{i + 1}</td>
+                  <td style={{ ...td, color: CRUST }} className="num">{e.id}</td>
+                  <td style={{ ...td, fontWeight: 500 }}>{e.name}</td>
+                  <td style={{ ...td, color: CRUST, fontSize: 12 }}>{e.branch}</td>
                   {monthFilter === "ALL" ? (
                     <>
-                      {MONTHLY.map((m) => <th key={m.key} style={{ ...th, textAlign: "right" }}>{m.label}</th>)}
-                      <th style={{ ...th, textAlign: "right", background: OVEN }}>รวม OT</th>
+                      {MONTHS.map((mk) => (
+                        <td key={mk} style={{ ...td, textAlign: "right", color: e.byMonth[mk] == null ? "#c9bfa8" : INK }} className="num">
+                          {e.byMonth[mk] == null ? "—" : fmt2(e.byMonth[mk])}
+                        </td>
+                      ))}
+                      <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
                     </>
                   ) : (
-                    <th style={{ ...th, textAlign: "right", background: OVEN }}>OT (บาท)</th>
+                    <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
                   )}
                 </tr>
-              </thead>
-              <tbody>
-                {tableRows.map((e, i) => (
-                  <tr key={e.id} className="row" style={{ borderBottom: `1px solid ${FLOUR}` }}>
-                    <td style={{ ...td, color: CRUST }}>{i + 1}</td>
-                    <td style={{ ...td, color: CRUST }} className="num">{e.id}</td>
-                    <td style={{ ...td, fontWeight: 500 }}>{e.name}</td>
-                    <td style={{ ...td, color: CRUST, fontSize: 12 }}>{e.branch}</td>
-                    {monthFilter === "ALL" ? (
-                      <>
-                        {MONTHS.map((mk) => (
-                          <td key={mk} style={{ ...td, textAlign: "right", color: e.byMonth[mk] == null ? "#c9bfa8" : INK }} className="num">
-                            {e.byMonth[mk] == null ? "—" : fmt2(e.byMonth[mk])}
-                          </td>
-                        ))}
-                        <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
-                      </>
-                    ) : (
-                      <td style={{ ...td, textAlign: "right", fontWeight: 700, color: OVEN }} className="num">{fmt2(e.value)}</td>
-                    )}
-                  </tr>
-                ))}
-                {tableRows.length === 0 && (
-                  <tr><td colSpan={20} style={{ ...td, textAlign: "center", color: CRUST, padding: 24 }}>ไม่พบข้อมูล</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <p style={{ fontSize: 11.5, color: CRUST, marginTop: 10, marginBottom: 0 }}>
-            * ยอด OT รวมคอลัมน์ "โอทีล่วงเวลา (x1.5)" และ "โอทีล่วงเวลาวันหยุด" ต่อคนต่อเดือน (ไม่รวมค่าจ้าง/เงินเดือน) · "—" หมายถึงไม่มีข้อมูลเดือนนั้น · ไม่รวมชีท Sheet8
-          </p>
+              ))}
+              {tableRows.length === 0 && (
+                <tr><td colSpan={20} style={{ ...td, textAlign: "center", color: CRUST, padding: 24 }}>ไม่พบข้อมูล</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
+        <p style={{ fontSize: 11.5, color: CRUST, marginTop: 10, marginBottom: 0 }}>
+          * ยอด OT รวมคอลัมน์ "โอทีล่วงเวลา (x1.5)" และ "โอทีล่วงเวลาวันหยุด" ต่อคนต่อเดือน (ไม่รวมค่าจ้าง/เงินเดือน) · "—" หมายถึงไม่มีข้อมูลเดือนนั้น · ไม่รวมชีท Sheet8
+        </p>
       </div>
     </div>
   );
@@ -304,9 +307,3 @@ function LegendDot({ color, label }) {
 
 const th = { padding: "9px 10px", fontWeight: 600, fontSize: 12, textAlign: "center" };
 const td = { padding: "8px 10px" };
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<PayrollDashboard />);
-</script>
-</body>
-</html>
