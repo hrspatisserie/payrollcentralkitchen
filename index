@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ค่าจ้างครัวกลาง</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Sarabun:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+
+  :root{
+    --ink:#2B241C;
+    --paper:#F7F1E4;
+    --oven:#C1611D;
+    --crust:#8A5A2B;
+    --flour:#EDE3CC;
+    --sage:#5F7A5A;
+    --clay:#B4552F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    min-height:100vh;
+    font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;
+    color:var(--ink);
+    padding:28px 20px;
+  }
+  .num{ font-variant-numeric: tabular-nums; }
+  .row:hover{ background: var(--flour) !important; }
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background: rgba(138,90,43,0.33); border-radius:4px; }
+  .chip{ cursor:pointer; transition: background .12s, color .12s; user-select:none; }
+  .card{ background:#fff; border:1px solid rgba(138,90,43,0.2); border-radius:14px; padding:18px 16px 8px; margin-bottom:20px; }
+  h1,h2{ font-family:'Fraunces',serif; margin:0; }
+  .kpi-card{ border-radius:14px; padding:16px; }
+  .kpi-label{ font-size:12px; font-weight:500; }
+  .kpi-value{ font-family:'Fraunces',serif; font-size:24px; font-weight:700; }
+  .kpi-sub{ font-size:12px; margin-top:2px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ padding:9px 10px; font-weight:600; font-size:12px; text-align:center; }
+  td{ padding:8px 10px; }
+  input, button{ font-family:inherit; }
+</style>
+</head>
+<body>
+
+<div style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px; border-bottom:3px solid var(--ink); padding-bottom:14px; margin-bottom:18px;">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div style="width:44px; height:44px; border-radius:10px; background:var(--oven); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:22px;">👨‍🍳</div>
+    <div>
+      <h1 style="font-weight:700; font-size:26px; letter-spacing:-0.3px;">ค่าจ้างครัวกลาง</h1>
+      <p style="margin:2px 0 0; font-size:13px; color:var(--crust); font-weight:500;">สรุปมกราคม – สิงหาคม 2569 · เบเกอรี (ครัวกลาง)</p>
+    </div>
+  </div>
+  <div style="font-size:12px; color:var(--crust); text-align:right;">
+    พนักงานทั้งหมด <b id="empCount"></b> คน
+  </div>
+</div>
+
+<div id="chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px;"></div>
+
+<div id="kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; margin-bottom:26px;"></div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+    <h2 style="font-size:17px; font-weight:600;">รายรับสุทธิ vs. โอที รายเดือน</h2>
+    <div style="display:flex; gap:14px; font-size:12px;">
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--crust);display:inline-block;"></span>รายรับสุทธิ (แท่ง)</span>
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--oven);display:inline-block;"></span>โอที (เส้น)</span>
+    </div>
+  </div>
+  <div style="height:300px;"><canvas id="chart1"></canvas></div>
+</div>
+
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+    <h2 style="font-size:17px; font-weight:600; display:flex; align-items:center; gap:8px;">🌐 แนวโน้ม OT: ครัวกลาง vs. ต่างชาติ</h2>
+    <div style="display:flex; gap:14px; font-size:12px;">
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--clay);display:inline-block;"></span>ครัวกลาง</span>
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--sage);display:inline-block;"></span>ต่างชาติ</span>
+    </div>
+  </div>
+  <div style="height:280px;"><canvas id="chart2"></canvas></div>
+</div>
+
+<div class="card" id="chart3Card" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+    <h2 style="font-size:17px; font-weight:600; display:flex; align-items:center; gap:8px;">🧾 แยกประเภท OT เดือน ส.ค. 2569</h2>
+    <div style="display:flex; gap:14px; font-size:12px;">
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--oven);display:inline-block;"></span>ครัวกลาง</span>
+      <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:3px;background:var(--sage);display:inline-block;"></span>ต่างชาติ</span>
+    </div>
+  </div>
+  <p style="font-size:11.5px; color:var(--crust); margin:0 0 8px;">มีข้อมูลแยกประเภทเฉพาะเดือน ส.ค. 2569 เป็นต้นไป (เดือนก่อนหน้าไม่มีไฟล์ต้นฉบับแยกประเภท)</p>
+  <div style="height:260px;"><canvas id="chart3"></canvas></div>
+</div>
+
+<div class="card" style="padding:18px 16px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+    <h2 id="tableTitle" style="font-size:17px; font-weight:600; display:flex; align-items:center; gap:8px;">🔥 รายชื่อ & ยอด OT แยกรายเดือน (ม.ค.–ส.ค. 2569)</h2>
+    <div style="display:flex; gap:8px;">
+      <div style="position:relative;">
+        <span style="position:absolute; left:9px; top:8px; color:var(--crust); font-size:13px;">🔍</span>
+        <input id="searchBox" placeholder="ค้นหาชื่อ / รหัส" style="padding:7px 10px 7px 28px; border-radius:8px; border:1px solid rgba(138,90,43,0.33); font-size:13px; width:180px; outline:none;">
+      </div>
+      <button id="sortBtn" style="display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:8px; border:1px solid rgba(138,90,43,0.33); background:var(--flour); font-size:13px; cursor:pointer; color:var(--ink);">
+        ⇅ <span id="sortLabel">มาก→น้อย</span>
+      </button>
+    </div>
+  </div>
+  <div style="max-height:520px; overflow-y:auto; overflow-x:auto; border-radius:8px;">
+    <table id="empTable"><thead></thead><tbody></tbody></table>
+  </div>
+  <p style="font-size:11.5px; color:var(--crust); margin-top:10px; margin-bottom:0;">
+    * ยอด OT รวมคอลัมน์ "โอทีล่วงเวลา (x1.5)" + "ทำงานวันหยุด/นักขัตฤกษ์" + "โอทีล่วงเวลาวันหยุด" ต่อคนต่อเดือน (ไม่รวมค่าจ้าง/เงินเดือน) · "—" หมายถึงไม่มีข้อมูลเดือนนั้น
+  </p>
+</div>
+
+<script>
+const MONTHS = ["012026", "022026", "032026", "042026", "052026", "062026", "072026", "082026"];
+
+const MONTHLY = [
+  { key: "012026", label: "ม.ค.", ot: 29485.08, income: 324465.96, n: 24 },
+  { key: "022026", label: "ก.พ.", ot: 14065.98, income: 345688.31, n: 25 },
+  { key: "032026", label: "มี.ค.", ot: 27506.43, income: 308589.03, n: 23 },
+  { key: "042026", label: "เม.ย.", ot: 80492.82, income: 372998.82, n: 25 },
+  { key: "052026", label: "พ.ค.", ot: 60140.19, income: 350679.19, n: 27 },
+  { key: "062026", label: "มิ.ย.", ot: 44147.02, income: 333058.75, n: 27 },
+  { key: "072026", label: "ก.ค.", ot: 68217.73, income: 342764.97, n: 28 },
+  { key: "082026", label: "ส.ค.", ot: 76322.16, income: 293558.53, n: 25, ot15: 26734.66, hw: 48650, hot: 937.5 },
+];
+
+const BRANCH_TREND = [
+  { key: "012026", label: "ม.ค.", "ครัวกลาง": 15397.08, "ต่างชาติ": 14088 },
+  { key: "022026", label: "ก.พ.", "ครัวกลาง": 13953.48, "ต่างชาติ": 112.5 },
+  { key: "032026", label: "มี.ค.", "ครัวกลาง": 10281.43, "ต่างชาติ": 17225.0 },
+  { key: "042026", label: "เม.ย.", "ครัวกลาง": 16453.32, "ต่างชาติ": 64039.5 },
+  { key: "052026", label: "พ.ค.", "ครัวกลาง": 14562.69, "ต่างชาติ": 45577.5 },
+  { key: "062026", label: "มิ.ย.", "ครัวกลาง": 11534.52, "ต่างชาติ": 32612.5 },
+  { key: "072026", label: "ก.ค.", "ครัวกลาง": 15906.33, "ต่างชาติ": 52311.4 },
+  { key: "082026", label: "ส.ค.", "ครัวกลาง": 13203.16, "ต่างชาติ": 63119.0 },
+];
+
+const EMPLOYEES = [{"id": "680085", "name": "นัน จี จี ลิน(จี)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1600, "022026": 0, "032026": 1325, "042026": 6450, "052026": 4287.5, "062026": 2937.5, "072026": 3450, "total_ot": 24100, "082026": 4050, "082026_ot15": 1500, "082026_hw": 2400, "082026_hot": 150}, {"id": "680083", "name": "นาน มิ้น ทาน เอ(ขมิ้น)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1600, "022026": 75, "032026": 1287.5, "042026": 4637.5, "052026": 4775, "062026": 2375, "072026": 4050, "total_ot": 22625, "082026": 3825, "082026_ot15": 1425, "082026_hw": 2400, "082026_hot": 0}, {"id": "680082", "name": "แนน คิน เทะ ไลง์ ทุน(มิน)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 800, "022026": 0, "032026": 1212.5, "042026": 5200, "052026": 4212.5, "062026": 2112.5, "072026": 3975, "total_ot": 21487.5, "082026": 3975, "082026_ot15": 1575, "082026_hw": 2400, "082026_hot": 0}, {"id": "680081", "name": "ทา ซิน(ซิน)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 800, "022026": 0, "032026": 1550, "042026": 5550, "052026": 3612.5, "062026": 2000, "072026": 3112.5, "total_ot": 20750, "082026": 4125, "082026_ot15": 1575, "082026_hw": 2400, "082026_hot": 150}, {"id": "680086", "name": "ซอ จอ ตู(จอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1600, "022026": 0, "032026": 1400, "042026": 4875, "052026": 3087.5, "062026": 2337.5, "072026": 3262.5, "total_ot": 20837.5, "082026": 4275, "082026_ot15": 1875, "082026_hw": 2400, "082026_hot": 0}, {"id": "680084", "name": "ซอ ออง โก อู(ซอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 913, "022026": 0, "032026": 1475, "042026": 4752, "052026": 3540, "062026": 2600, "072026": 3002, "total_ot": 20826, "082026": 4544, "082026_ot15": 2069, "082026_hw": 2400, "082026_hot": 75}, {"id": "680079", "name": "ซอ มิน อ่อง(รัก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1675, "022026": 37.5, "032026": 1325, "042026": 5837.5, "052026": 5187.5, "062026": 1887.5, "072026": 0, "total_ot": 15950, "082026": null}, {"id": "680077", "name": "ซอ ไป โทน(ซอ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1600, "022026": 0, "032026": 1662.5, "042026": 3850, "052026": 2525, "062026": 1925, "072026": 2700, "total_ot": 18725.0, "082026": 4462.5, "082026_ot15": 2062.5, "082026_hw": 2400, "082026_hot": 0}, {"id": "680080", "name": "โซ นัย วิน(เวง)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1750, "022026": 0, "032026": 1775, "042026": 2912.5, "052026": 1812.5, "062026": 1550, "072026": 3150, "total_ot": 16737.5, "082026": 3787.5, "082026_ot15": 1387.5, "082026_hw": 2400, "082026_hot": 0}, {"id": "68007", "name": "ศุภากร จอมทอง(เบียร์)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1984.38, "022026": 1078.15, "032026": 921.88, "042026": 2953.15, "052026": 828.13, "062026": 781.25, "072026": 3296.9, "total_ot": 13343.84, "082026": 1500, "082026_ot15": 0, "082026_hw": 1500, "082026_hot": 0}, {"id": "680055", "name": "มัณฑณานาฎ ลือแสง(บิวตี้)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1609.4, "022026": 1875.05, "032026": 937.52, "042026": 2609.39, "052026": 1578.15, "062026": 2515.68, "072026": 375, "total_ot": 11500.19, "082026": null}, {"id": "690025", "name": "ซอ เนียง ทู(ทู)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 1400, "042026": 3675, "052026": 1475, "062026": 1587.5, "072026": 3262.5, "total_ot": 15075, "082026": 3675, "082026_ot15": 1275, "082026_hw": 2400, "082026_hot": 0}, {"id": "690037", "name": "ซอ อ่อง เมียว นวย(บิ๊ก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 3750, "052026": 1850, "062026": 2300, "072026": 3150, "total_ot": 14725, "082026": 3675, "082026_ot15": 1275, "082026_hw": 2400, "082026_hot": 0}, {"id": "68015", "name": "ศุภกฤต เปลี่ยนสีนวล(โอ๊ต)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 375, "022026": 1484.41, "032026": 1125.03, "042026": 1062.51, "052026": 3781.28, "062026": 1968.8, "072026": 1171.88, "total_ot": 11968.91, "082026": 1000, "082026_ot15": 0, "082026_hw": 1000, "082026_hot": 0}, {"id": "690035", "name": "ซอ ชิด แต เล(เล)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 3525, "052026": 2225, "062026": 2150, "072026": 2775, "total_ot": 14575, "082026": 3900, "082026_ot15": 1500, "082026_hw": 2400, "082026_hot": 0}, {"id": "690047", "name": "นัฐชิตา พุ่มพวง(ยัสมิน)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 2468.78, "062026": 2468.76, "072026": 5203.16, "total_ot": 11328.2, "082026": 1187.5, "082026_ot15": 187.5, "082026_hw": 1000, "082026_hot": 0}, {"id": "68024", "name": "ธีรภัทร์ คลังสิน(ท๊อป)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 921.89, "022026": 656.29, "032026": 515.67, "042026": 1546.91, "052026": 984.42, "062026": 1265.64, "072026": 3140.66, "total_ot": 10359.61, "082026": 1328.13, "082026_ot15": 328.13, "082026_hw": 1000, "082026_hot": 0}, {"id": "690026", "name": "พี พิว ป่าย(พิก)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 875, "042026": 3525, "052026": 1550, "062026": 1850, "072026": 1012.5, "total_ot": 12112.5, "082026": 3300, "082026_ot15": 900, "082026_hw": 2400, "082026_hot": 0}, {"id": "690044", "name": "ซอ เมียด โซ(ปุ๊)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": 525, "052026": 2375, "062026": 1737.5, "072026": 3900, "total_ot": 10087.5, "082026": 1550, "082026_ot15": 750, "082026_hw": 800, "082026_hot": 0}, {"id": "690024", "name": "อัง เพียง(ปาย)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": 0, "032026": 800, "042026": 3150, "052026": 1325, "062026": 800, "072026": 2212.5, "total_ot": 11387.5, "082026": 3100, "082026_ot15": 750, "082026_hw": 2350, "082026_hot": 0}, {"id": "68019", "name": "ธนโชติ เกียรติวิศวพัฒน์(กี้)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 2546.92, "022026": 2437.55, "032026": 1828.17, "042026": 1312.53, "052026": null, "062026": null, "072026": null, "total_ot": 8125.17, "082026": null}, {"id": "68011", "name": "พรชัย หว่านหอม(พร)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1375.01, "022026": 1359.4, "032026": 1109.38, "042026": 2015.63, "052026": 500, "062026": 687.5, "072026": 1000, "total_ot": 9546.92, "082026": 1500, "082026_ot15": 0, "082026_hw": 1500, "082026_hot": 0}, {"id": "68003", "name": "อรจิรา ภักดี(มิลค์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1109.39, "022026": 2296.94, "032026": 1218.76, "042026": 1781.28, "052026": 1437.52, "062026": 93.75, "072026": null, "total_ot": 7937.64, "082026": null}, {"id": "680076", "name": "วีรวรรณ ชีพอุบัติ(ตุ่น)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1421.92, "022026": 1781.3, "032026": 1546.89, "042026": 3171.92, "052026": null, "062026": null, "072026": null, "total_ot": 7922.03, "082026": null}, {"id": "690053", "name": "ซอ หม่อง ซุย ซอง(ซุ่ย)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 787.5, "062026": 1662.5, "072026": 3937.5, "total_ot": 10062.5, "082026": 3675, "082026_ot15": 1275, "082026_hw": 2400, "082026_hot": 0}, {"id": "680078", "name": "ซอ จิน โก โก ทัน(กู)", "branch": "เบเกอรี (ต่างชาติ)", "012026": 1750, "022026": 0, "032026": 1137.5, "042026": 1825, "052026": 800, "062026": 800, "072026": null, "total_ot": 6312.5, "082026": null}, {"id": "690046", "name": "อิสริยา โพธิ์ทอง(ออย)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 2984.41, "062026": 1640.64, "072026": 0, "total_ot": 4625.05, "082026": null}, {"id": "680073", "name": "ภรภัทร ราชา(พิ้งค์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 2031.29, "022026": 984.39, "032026": 1078.13, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 4093.81, "082026": null}, {"id": "690063", "name": "นันทิตา จำปาทอง(โม)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 3000, "total_ot": 6890.65, "082026": 3890.65, "082026_ot15": 1828.15, "082026_hw": 1500, "082026_hot": 562.5}, {"id": "690062", "name": "ณัฐพร เทพจันตา(น้ำ)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 2015.63, "total_ot": 2843.76, "082026": 828.13, "082026_ot15": 328.13, "082026_hw": 500, "082026_hot": 0}, {"id": "690070", "name": "ซอ ปาย โซ(โซ)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 1275, "total_ot": 4650, "082026": 3375, "082026_ot15": 975, "082026_hw": 2400, "082026_hot": 0}, {"id": "68023", "name": "จักรดุลย์ นุ่มนาม(บอส)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 1234.38, "022026": 0, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 1234.38, "082026": null}, {"id": "67015", "name": "นริศรา กาวิน(มินิ)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 787.5, "022026": 0, "032026": 0, "042026": 0, "052026": 0, "062026": 112.5, "072026": 0, "total_ot": 900, "082026": null}, {"id": "690079", "name": "SAW YE WIN NAING", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": 787.5, "total_ot": 4612.5, "082026": 3825, "082026_ot15": 1425, "082026_hw": 2400, "082026_hot": 0}, {"id": "690054", "name": "GAR MA NI(กา)", "branch": "เบเกอรี (ต่างชาติ)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": 150, "062026": 0, "072026": null, "total_ot": 150, "082026": null}, {"id": "68002", "name": "สุภัสสรา ปรีดาสุทธิจิตต์(หมวย)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0, "082026": null}, {"id": "68008", "name": "ธนเศรษฐ เอี่ยมเจริญสุข(เปอร์)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0, "082026": null}, {"id": "68025", "name": "เสฏฐวัฒน์ ทางธนกุล(บุ๊ค)", "branch": "เบเกอรี (ครัวกลาง)", "012026": 0, "022026": 0, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "total_ot": 0, "082026": null}, {"id": "690078", "name": "บุญรักษา งามยิ่ง(ชมพู่)", "branch": "เบเกอรี (ครัวกลาง)", "012026": null, "022026": null, "032026": null, "042026": null, "052026": null, "062026": null, "072026": null, "082026": 1968.75, "total_ot": 1968.75, "082026_ot15": 468.75, "082026_hw": 1500, "082026_hot": 0}];
+
+const AUG_OT_BREAKDOWN = {"kitchen": {"ot15": 3140.66, "hw": 9500, "hot": 562.5}, "foreign": {"ot15": 23594.0, "hw": 39150, "hot": 375}};
+
+const INK="#2B241C", PAPER="#F7F1E4", OVEN="#C1611D", CRUST="#8A5A2B", SAGE="#5F7A5A", CLAY="#B4552F";
+
+const fmt = (n) => Math.round(n).toLocaleString("th-TH");
+const fmt2 = (n) => n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+let monthFilter = "ALL";
+let sortDesc = true;
+let query = "";
+
+document.getElementById("empCount").textContent = EMPLOYEES.length;
+
+const maxOtMonth = MONTHLY.reduce((a,b)=> b.ot > a.ot ? b : a);
+const maxIncomeMonth = MONTHLY.reduce((a,b)=> b.income > a.income ? b : a);
+const totalIncomeAll = MONTHLY.reduce((s,m)=> s+m.income, 0);
+const totalOtAll = MONTHLY.reduce((s,m)=> s+m.ot, 0);
+
+function renderChips(){
+  const wrap = document.getElementById("chips");
+  wrap.innerHTML = "";
+  const allChip = document.createElement("span");
+  allChip.className = "chip";
+  allChip.textContent = "ทั้งหมด (8 เดือน)";
+  Object.assign(allChip.style, {
+    padding:"6px 14px", borderRadius:"999px", fontSize:"13px", fontWeight:"600",
+    background: monthFilter==="ALL" ? INK : "#fff",
+    color: monthFilter==="ALL" ? PAPER : INK,
+    border: `1px solid ${INK}`
+  });
+  allChip.onclick = () => { monthFilter = "ALL"; renderAll(); };
+  wrap.appendChild(allChip);
+
+  MONTHLY.forEach(m => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = m.label;
+    Object.assign(chip.style, {
+      padding:"6px 14px", borderRadius:"999px", fontSize:"13px", fontWeight:"600",
+      background: monthFilter===m.key ? OVEN : "#fff",
+      color: monthFilter===m.key ? PAPER : INK,
+      border: `1px solid ${monthFilter===m.key ? OVEN : CRUST+"55"}`
+    });
+    chip.onclick = () => { monthFilter = m.key; renderAll(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function kpiCard({icon,label,value,sub,highlight}){
+  const div = document.createElement("div");
+  div.className = "kpi-card";
+  div.style.background = highlight ? INK : "#fff";
+  div.style.color = highlight ? PAPER : INK;
+  div.style.border = `1px solid ${highlight ? INK : CRUST+"33"}`;
+  div.innerHTML = `
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+      <span>${icon}</span>
+      <span class="kpi-label" style="color:${highlight ? PAPER+"cc" : CRUST};">${label}</span>
+    </div>
+    <div class="kpi-value num">${value}</div>
+    <div class="kpi-sub num" style="color:${highlight ? PAPER+"aa" : CRUST};">${sub}</div>
+  `;
+  return div;
+}
+
+function renderKpis(){
+  const wrap = document.getElementById("kpis");
+  wrap.innerHTML = "";
+  if (monthFilter === "ALL"){
+    wrap.appendChild(kpiCard({icon:"💰", label:"ยอดรายรับสุทธิรวม 8 เดือน", value:`฿${fmt(totalIncomeAll)}`, sub:"รวมรายรับสุทธิทุกสาขา"}));
+    wrap.appendChild(kpiCard({icon:"🔥", label:"ยอด OT รวม 8 เดือน", value:`฿${fmt(totalOtAll)}`, sub:"โอทีล่วงเวลาทุกประเภท"}));
+    wrap.appendChild(kpiCard({icon:"🔥", label:"เดือนที่ OT สูงสุด", value:maxOtMonth.label, sub:`฿${fmt(maxOtMonth.ot)}`, highlight:true}));
+    wrap.appendChild(kpiCard({icon:"💰", label:"เดือนที่รายรับสุทธิสูงสุด", value:maxIncomeMonth.label, sub:`฿${fmt(maxIncomeMonth.income)}`, highlight:true}));
+  } else {
+    const selected = MONTHLY.find(m => m.key === monthFilter);
+    wrap.appendChild(kpiCard({icon:"💰", label:`รายรับสุทธิ เดือน ${selected.label}`, value:`฿${fmt(selected.income)}`, sub:"รวมรายรับสุทธิทุกสาขา", highlight:true}));
+    wrap.appendChild(kpiCard({icon:"🔥", label:`OT รวม เดือน ${selected.label}`, value:`฿${fmt(selected.ot)}`, sub:`${((selected.ot/selected.income)*100).toFixed(1)}% ของรายรับสุทธิ`, highlight:true}));
+    wrap.appendChild(kpiCard({icon:"👥", label:"พนักงานที่มีข้อมูล", value:`${selected.n} คน`, sub:`เดือน ${selected.label} 2569`}));
+    wrap.appendChild(kpiCard({icon:"🔥", label:"OT เฉลี่ยต่อคน", value:`฿${fmt(selected.ot/selected.n)}`, sub:`เดือน ${selected.label}`}));
+
+    if (selected.ot15 !== undefined){
+      wrap.appendChild(kpiCard({icon:"⏱️", label:"โอทีล่วงเวลา (x1.5)", value:`฿${fmt(selected.ot15)}`, sub:`${((selected.ot15/selected.ot)*100).toFixed(1)}% ของ OT รวม`}));
+      wrap.appendChild(kpiCard({icon:"📅", label:"ทำงานวันหยุด/นักขัตฤกษ์", value:`฿${fmt(selected.hw)}`, sub:`${((selected.hw/selected.ot)*100).toFixed(1)}% ของ OT รวม`}));
+      wrap.appendChild(kpiCard({icon:"🎌", label:"โอทีล่วงเวลาวันหยุด", value:`฿${fmt(selected.hot)}`, sub:`${((selected.hot/selected.ot)*100).toFixed(1)}% ของ OT รวม`}));
+    }
+  }
+}
+
+let chart1, chart2, chart3;
+function renderCharts(){
+  const ctx1 = document.getElementById("chart1").getContext("2d");
+  if (chart1) chart1.destroy();
+  chart1 = new Chart(ctx1, {
+    data: {
+      labels: MONTHLY.map(m=>m.label),
+      datasets: [
+        { type:"bar", label:"รายรับสุทธิ", data: MONTHLY.map(m=>m.income), backgroundColor: CRUST, borderRadius:5, yAxisID:"y", order:2 },
+        { type:"line", label:"โอที", data: MONTHLY.map(m=>m.ot), borderColor: OVEN, backgroundColor: OVEN, borderWidth:3, pointRadius:4, yAxisID:"y1", order:1 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label: (c) => `${c.dataset.label}: ฿${fmt2(c.raw)}`
+          }
+        }
+      },
+      scales:{
+        y:{ position:"left", ticks:{ callback:(v)=>`${Math.round(v/1000)}k` }, grid:{ color:"#EDE3CC" } },
+        y1:{ position:"right", ticks:{ callback:(v)=>`${Math.round(v/1000)}k`, color:OVEN }, grid:{ drawOnChartArea:false } }
+      }
+    }
+  });
+
+  const ctx2 = document.getElementById("chart2").getContext("2d");
+  if (chart2) chart2.destroy();
+  chart2 = new Chart(ctx2, {
+    type:"line",
+    data:{
+      labels: BRANCH_TREND.map(m=>m.label),
+      datasets:[
+        { label:"ครัวกลาง", data: BRANCH_TREND.map(m=>m["ครัวกลาง"]), borderColor:CLAY, backgroundColor:CLAY, borderWidth:3, pointRadius:4 },
+        { label:"ต่างชาติ", data: BRANCH_TREND.map(m=>m["ต่างชาติ"]), borderColor:SAGE, backgroundColor:SAGE, borderWidth:3, pointRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: ฿${fmt2(c.raw)}` } }
+      },
+      scales:{
+        y:{ ticks:{ callback:(v)=>`${Math.round(v/1000)}k` }, grid:{ color:"#EDE3CC" } }
+      }
+    }
+  });
+
+  const chart3Card = document.getElementById("chart3Card");
+  if (monthFilter === "082026"){
+    chart3Card.style.display = "";
+    const ctx3 = document.getElementById("chart3").getContext("2d");
+    if (chart3) chart3.destroy();
+    chart3 = new Chart(ctx3, {
+      type:"bar",
+      data:{
+        labels: ["โอทีล่วงเวลา (x1.5)", "ทำงานวันหยุด/นักขัตฤกษ์", "โอทีล่วงเวลาวันหยุด"],
+        datasets:[
+          { label:"ครัวกลาง", data:[AUG_OT_BREAKDOWN.kitchen.ot15, AUG_OT_BREAKDOWN.kitchen.hw, AUG_OT_BREAKDOWN.kitchen.hot], backgroundColor: OVEN, borderRadius:5 },
+          { label:"ต่างชาติ", data:[AUG_OT_BREAKDOWN.foreign.ot15, AUG_OT_BREAKDOWN.foreign.hw, AUG_OT_BREAKDOWN.foreign.hot], backgroundColor: SAGE, borderRadius:5 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ callbacks:{ label:(c)=>`${c.dataset.label}: ฿${fmt2(c.raw)}` } }
+        },
+        scales:{
+          x:{ stacked:false },
+          y:{ ticks:{ callback:(v)=>`${Math.round(v/1000)}k` }, grid:{ color:"#EDE3CC" } }
+        }
+      }
+    });
+  } else {
+    chart3Card.style.display = "none";
+    if (chart3) { chart3.destroy(); chart3 = null; }
+  }
+}
+
+function getTableRows(){
+  let rows;
+  if (monthFilter === "ALL"){
+    rows = EMPLOYEES.map(e => ({ id:e.id, name:e.name, branch:e.branch, value:e.total_ot, byMonth:e }));
+  } else {
+    rows = EMPLOYEES.filter(e => e[monthFilter] !== null && e[monthFilter] !== undefined)
+      .map(e => ({ id:e.id, name:e.name, branch:e.branch, value:e[monthFilter], byMonth:e }));
+  }
+  const q = query.toLowerCase();
+  rows = rows.filter(e => e.name.toLowerCase().includes(q) || e.id.includes(query));
+  rows = rows.slice().sort((a,b)=> sortDesc ? b.value - a.value : a.value - b.value);
+  return rows;
+}
+
+function monthChipLabel(key){ return MONTHLY.find(m=>m.key===key)?.label; }
+
+function renderTable(){
+  const title = document.getElementById("tableTitle");
+  title.innerHTML = `🔥 รายชื่อ &amp; ยอด OT ${monthFilter==="ALL" ? "แยกรายเดือน (ม.ค.–ส.ค. 2569)" : `เดือน ${monthChipLabel(monthFilter)} 2569`}`;
+
+  const thead = document.querySelector("#empTable thead");
+  const tbody = document.querySelector("#empTable tbody");
+  thead.innerHTML = "";
+  tbody.innerHTML = "";
+
+  const table = document.getElementById("empTable");
+  table.style.minWidth = monthFilter === "ALL" ? "900px" : (monthFilter === "082026" ? "720px" : "480px");
+
+  const trHead = document.createElement("tr");
+  trHead.style.position = "sticky";
+  trHead.style.top = "0";
+  trHead.style.background = INK;
+  trHead.style.color = PAPER;
+  trHead.style.zIndex = "1";
+
+  const headers = ["#", "รหัส", "ชื่อ-นามสกุล", "สาขา"];
+  headers.forEach((h,i) => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    if (i >= 1 && i <= 2) th.style.textAlign = "left";
+    if (i === 3) th.style.textAlign = "left";
+    trHead.appendChild(th);
+  });
+
+  if (monthFilter === "ALL"){
+    MONTHLY.forEach(m => {
+      const th = document.createElement("th");
+      th.textContent = m.label;
+      th.style.textAlign = "right";
+      trHead.appendChild(th);
+    });
+    const th = document.createElement("th");
+    th.textContent = "รวม OT";
+    th.style.textAlign = "right";
+    th.style.background = OVEN;
+    trHead.appendChild(th);
+  } else if (monthFilter === "082026"){
+    ["OT 1.5", "ทำงานวันหยุด", "โอทีวันหยุด", "รวม OT"].forEach((h,i) => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      th.style.textAlign = "right";
+      if (i === 3) th.style.background = OVEN;
+      trHead.appendChild(th);
+    });
+  } else {
+    const th = document.createElement("th");
+    th.textContent = "OT (บาท)";
+    th.style.textAlign = "right";
+    th.style.background = OVEN;
+    trHead.appendChild(th);
+  }
+  thead.appendChild(trHead);
+
+  const rows = getTableRows();
+  rows.forEach((e,i) => {
+    const tr = document.createElement("tr");
+    tr.className = "row";
+    tr.style.borderBottom = "1px solid #EDE3CC";
+
+    const tdIdx = document.createElement("td");
+    tdIdx.textContent = i+1;
+    tdIdx.style.color = CRUST;
+    tr.appendChild(tdIdx);
+
+    const tdId = document.createElement("td");
+    tdId.textContent = e.id;
+    tdId.style.color = CRUST;
+    tdId.className = "num";
+    tr.appendChild(tdId);
+
+    const tdName = document.createElement("td");
+    tdName.textContent = e.name;
+    tdName.style.fontWeight = "500";
+    tr.appendChild(tdName);
+
+    const tdBranch = document.createElement("td");
+    tdBranch.textContent = e.branch;
+    tdBranch.style.color = CRUST;
+    tdBranch.style.fontSize = "12px";
+    tr.appendChild(tdBranch);
+
+    if (monthFilter === "ALL"){
+      MONTHS.forEach(mk => {
+        const td = document.createElement("td");
+        const v = e.byMonth[mk];
+        td.textContent = (v === null || v === undefined) ? "—" : fmt2(v);
+        td.style.textAlign = "right";
+        td.style.color = (v === null || v === undefined) ? "#c9bfa8" : INK;
+        td.className = "num";
+        tr.appendChild(td);
+      });
+      const tdTotal = document.createElement("td");
+      tdTotal.textContent = fmt2(e.value);
+      tdTotal.style.textAlign = "right";
+      tdTotal.style.fontWeight = "700";
+      tdTotal.style.color = OVEN;
+      tdTotal.className = "num";
+      tr.appendChild(tdTotal);
+    } else if (monthFilter === "082026"){
+      [e.byMonth["082026_ot15"], e.byMonth["082026_hw"], e.byMonth["082026_hot"]].forEach(v => {
+        const td = document.createElement("td");
+        td.textContent = (v === null || v === undefined) ? "—" : fmt2(v);
+        td.style.textAlign = "right";
+        td.style.color = (v === null || v === undefined) ? "#c9bfa8" : INK;
+        td.className = "num";
+        tr.appendChild(td);
+      });
+      const tdVal = document.createElement("td");
+      tdVal.textContent = fmt2(e.value);
+      tdVal.style.textAlign = "right";
+      tdVal.style.fontWeight = "700";
+      tdVal.style.color = OVEN;
+      tdVal.className = "num";
+      tr.appendChild(tdVal);
+    } else {
+      const tdVal = document.createElement("td");
+      tdVal.textContent = fmt2(e.value);
+      tdVal.style.textAlign = "right";
+      tdVal.style.fontWeight = "700";
+      tdVal.style.color = OVEN;
+      tdVal.className = "num";
+      tr.appendChild(tdVal);
+    }
+    tbody.appendChild(tr);
+  });
+
+  if (rows.length === 0){
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 20;
+    td.textContent = "ไม่พบข้อมูล";
+    td.style.textAlign = "center";
+    td.style.color = CRUST;
+    td.style.padding = "24px";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+}
+
+function renderAll(){
+  renderChips();
+  renderKpis();
+  renderCharts();
+  renderTable();
+}
+
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  query = e.target.value;
+  renderTable();
+});
+
+document.getElementById("sortBtn").addEventListener("click", () => {
+  sortDesc = !sortDesc;
+  document.getElementById("sortLabel").textContent = sortDesc ? "มาก→น้อย" : "น้อย→มาก";
+  renderTable();
+});
+
+renderAll();
+</script>
+</body>
+</html>
